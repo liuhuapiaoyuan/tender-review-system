@@ -1,7 +1,8 @@
 
+import FileUploadButton from "@/components/FileUploadButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, FileCheck, ShieldCheck, AlertTriangle, BarChart3 } from "lucide-react";
+import { AlertTriangle, BarChart3, FileCheck, ShieldCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const HomePage = () => {
@@ -15,19 +16,8 @@ const HomePage = () => {
         <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto">
           基于人工智能的招标文件审查工具，自动识别潜在风险，确保招标过程合规高效
         </p>
-        
-        <Link to="/review">
-          <Button size="lg" className="group relative overflow-hidden h-14 px-8 text-lg">
-            <span className="absolute inset-0 w-full h-full transition-all duration-300 ease-out transform translate-x-0 -skew-x-12 bg-primary group-hover:bg-opacity-80"></span>
-            <span className="absolute inset-0 w-full h-full transition-all duration-300 ease-out transform skew-x-12 bg-primary group-hover:bg-opacity-90"></span>
-            <span className="absolute bottom-0 left-0 hidden w-10 h-20 transition-all duration-100 ease-out transform -translate-x-8 translate-y-10 bg-primary rotate-12"></span>
-            <span className="absolute bottom-0 right-0 hidden w-10 h-20 transition-all duration-100 ease-out transform translate-x-10 translate-y-8 bg-primary -rotate-12"></span>
-            <span className="relative flex items-center gap-2">
-              <Upload className="h-5 w-5" />
-              上传招标文件开始审查
-            </span>
-          </Button>
-        </Link>
+         
+        <FileUploadButton />
       </div>
       
       {/* Features Section */}
