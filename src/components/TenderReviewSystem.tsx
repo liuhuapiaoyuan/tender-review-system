@@ -9,7 +9,8 @@ import { simulateReviewProcess } from "../utils/reviewSimulator";
 import Header from "./Header";
 import ReviewCheckList from "./ReviewCheckList";
 import ReviewDetail from "./ReviewDetail";
-import { WordEditor } from "./WordEditor";
+import { PdfViewer } from "./review/PdfViewer";
+import { PdfViewerProvider } from "./review/PdfViewerProvider";
 
 interface TenderReviewSystemProps {
   data: TenderReview;
@@ -109,7 +110,9 @@ const TenderReviewSystem = ({ data }: TenderReviewSystemProps) => {
           maxSize={60}
         >
           <div className="h-full bg-white shadow-sm flex">
-            <WordEditor />
+            <PdfViewerProvider>
+              <PdfViewer url="https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf" />
+            </PdfViewerProvider>
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

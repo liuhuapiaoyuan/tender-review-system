@@ -1,11 +1,10 @@
 import { useToast } from "@/hooks/use-toast";
-import pdf2html from "pdf2html";
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useOfficeEditor } from "../office-editor/OfficeCanvasProvider";
 async function convertPdfToHtml(pdfFilePath) {
   try {
-    const html = await pdf2html.html(pdfFilePath);
+    const html = `asdsa`;
     console.log(html);
     return html;
   } catch (error) {
@@ -22,7 +21,9 @@ export function FileLoader() {
   useEffect(() => {
     convertPdfToHtml(fileUrl)
       .then((content) => {
-        editor?.command?.executeSetHTML(content);
+        editor?.command?.executeSetHTML({
+          main: content,
+        });
       })
       .catch(() => {
         toast({
@@ -32,5 +33,5 @@ export function FileLoader() {
         });
       });
   }, [fileUrl, editor]);
-  return <div>{fileUrl}</div>;
+  return <></>;
 }
