@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,20 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				risk: {
+					DEFAULT: '#e53e3e',
+					light: '#feb2b2',
+				},
+				safe: {
+					DEFAULT: '#38a169',
+					light: '#9ae6b4',
+				},
+				tender: {
+					blue: '#2C5282',
+					lightBlue: '#4299E1',
+					gray: '#E2E8F0',
+					highlight: '#EBF8FF',
 				}
 			},
 			borderRadius: {
@@ -84,12 +99,49 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': { 
+						opacity: '0',
+						transform: 'translateY(10px)' 
+					},
+					'100%': { 
+						opacity: '1',
+						transform: 'translateY(0)' 
+					},
+				},
+				'slide-in': {
+					'0%': { 
+						transform: 'translateX(-20px)',
+						opacity: '0' 
+					},
+					'100%': { 
+						transform: 'translateX(0)',
+						opacity: '1' 
+					},
+				},
+				'pulse-subtle': {
+					'0%, 100%': { 
+						opacity: '1' 
+					},
+					'50%': { 
+						opacity: '0.85' 
+					},
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
-			}
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.5s ease-out forwards',
+				'slide-in': 'slide-in 0.3s ease-out forwards',
+				'pulse-subtle': 'pulse-subtle 2s ease-in-out infinite',
+			},
+			backdropFilter: {
+				'none': 'none',
+				'sm': 'blur(4px)',
+				'md': 'blur(8px)',
+				'lg': 'blur(16px)',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
