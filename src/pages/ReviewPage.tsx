@@ -1,14 +1,14 @@
-import { OfficeEditorProvider } from "@/components/office-editor/OfficeCanvasProvider";
-import { FileLoader } from "@/components/review/FileLoader";
+import { PDFTest } from "@/components/review/PDFTest";
+import { PdfViewerProvider } from "@/components/review/PdfViewerProvider";
 import TenderReviewSystem from "@/components/TenderReviewSystem";
 import { mockTenderReview } from "@/data/mockData";
 
 const ReviewPage = () => {
   return (
-    <OfficeEditorProvider>
-      <FileLoader />
+    <PdfViewerProvider>
+      <PDFTest />
       <TenderReviewSystem data={mockTenderReview} />
-    </OfficeEditorProvider>
+    </PdfViewerProvider>
   );
 };
 

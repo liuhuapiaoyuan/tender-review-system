@@ -1,68 +1,69 @@
 import { PDFDocumentProxy } from "pdfjs-dist";
-import { TextItem } from "pdfjs-dist/types/src/display/api";
-import { createContext, ReactNode, useContext, useRef, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
+import {
+  Annotation,
+  searchTextPositions,
+  SearchTextPositionsResult,
+} from "./util";
 type PDFViewerApplication = PDFDocumentProxy;
 
-type searchTextPositionsResult = {
-  page: number;
-  text: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-};
-async function searchTextPositions(
-  pdfDocument: PDFDocumentProxy,
-  searchText: string
-) {
-  const results: searchTextPositionsResult[] = [];
-
-  for (let i = 1; i <= pdfDocument.numPages; i++) {
-    const page = await pdfDocument.getPage(i);
-    const textContent = await page.getTextContent();
-
-    // @ts-expect-error NONE
-    const matches: TextItem[] = textContent.items.filter((item) => {
-      if ("str" in item) {
-        return item.str.includes(searchText);
-      }
-    });
-    if (matches.length > 0) {
-      const viewport = page.getViewport({ scale: 1.0 });
-
-      matches.forEach((match) => {
-        const transform = match.transform;
-        results.push({
-          page: i,
-          text: match.str,
-          x: transform[4], // 水平坐标
-          y: viewport.height - transform[5], // 转换为从上到下的坐标
-          width: match.width,
-          height: match.height,
-        });
-      });
-    }
-  }
-
-  return results;
-}
 // PDF查看器的上下文接口
 interface PdfViewerContextType {
   containerRef: React.RefObject<HTMLDivElement>;
   pdf: PDFViewerApplication;
   setPdf: (pdf: PDFViewerApplication) => void;
   /* 检索并定位 */
-  search: (keyword: string) => Promise<searchTextPositionsResult[]>;
-
+  search: (keyword: string) => Promise<SearchTextPositionsResult[]>;
   /* 跳转到指定页码 */
   searchLocation: (keyword: string) => Promise<void>;
   goToPage: (pageNumber: number) => Promise<void>;
+
+  annotations: Annotation[];
+  addAnnotation: (annotation: Omit<Annotation, "id">) => void;
+  addSearchAnnotation: (
+    searchResult: SearchTextPositionsResult
+  ) => Promise<void>;
+  removeAnnotation: (id: string) => void;
+  clearAnnotations: () => void;
+  getAnnotations: () => Annotation[];
 }
 
 // 创建PDF查看器上下文
 const PdfViewerContext = createContext<PdfViewerContextType | undefined>(
   undefined
 );
+
+type AnnotationAction =
+  | { type: "ADD"; payload: Omit<Annotation, "id"> }
+  | { type: "REMOVE"; payload: string }
+  | { type: "CLEAR" };
+
+const annotationReducer = (
+  state: Annotation[],
+  action: AnnotationAction
+): Annotation[] => {
+  switch (action.type) {
+    case "ADD":
+      return [
+        ...state,
+        { ...action.payload, id: Math.random().toString(36).substr(2, 9) },
+      ];
+    case "REMOVE":
+      return state.filter((annotation) => annotation.id !== action.payload);
+    case "CLEAR":
+      return [];
+    default:
+      return state;
+  }
+};
 
 // PDF查看器Provider属性接口
 interface PdfViewerProviderProps {
@@ -73,11 +74,17 @@ interface PdfViewerProviderProps {
 export const PdfViewerProvider = ({ children }: PdfViewerProviderProps) => {
   const [pdf, setPdf] = useState<PDFViewerApplication>();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [annotations, dispatch] = useReducer(annotationReducer, []);
+
   /* 检索并定位 */
-  const search = async (keyword: string) => {
-    if (!pdf) return;
-    return searchTextPositions(pdf, keyword);
-  };
+  const search = useCallback(
+    async (keyword: string) => {
+      if (!pdf) return;
+      return searchTextPositions(pdf, keyword);
+    },
+    [pdf]
+  );
+
   /* 检索并跳转 */
   const searchLocation = async (keyword: string) => {
     if (!pdf) return;
@@ -88,11 +95,49 @@ export const PdfViewerProvider = ({ children }: PdfViewerProviderProps) => {
       console.log(data);
     }
   };
+
   /* 跳转到指定页码 */
   const goToPage = async (pageNumber: number) => {
     if (!pdf) return;
     const page = pdf.getPage(pageNumber);
   };
+
+  const addAnnotation = useCallback((annotation: Omit<Annotation, "id">) => {
+    dispatch({ type: "ADD", payload: annotation });
+  }, []);
+  const addSearchAnnotation = useCallback(
+    async (searchResult: SearchTextPositionsResult) => {
+      const item = searchResult;
+      let height = item.y * 1.5 - item.height * 1.5;
+      for (let i = 1; i < item.page; i++) {
+        const itemPage = await pdf.getPage(i + 1);
+        height += itemPage.getViewport({ scale: 1.5 }).height;
+      }
+      addAnnotation({
+        page: item.page,
+        type: "",
+        x: item.x * 1.5,
+        y: item.y * 1.5,
+        scrollTop: height,
+        width: item.width * 1.5,
+        height: item.height * 1.5,
+        text: item.text,
+        color: "#f00",
+      });
+    },
+    [pdf]
+  );
+
+  const removeAnnotation = useCallback((id: string) => {
+    dispatch({ type: "REMOVE", payload: id });
+  }, []);
+
+  const clearAnnotations = useCallback(() => {
+    dispatch({ type: "CLEAR" });
+  }, []);
+
+  const getAnnotations = useCallback(() => annotations, [annotations]);
+
   return (
     <PdfViewerContext.Provider
       value={{
@@ -102,6 +147,12 @@ export const PdfViewerProvider = ({ children }: PdfViewerProviderProps) => {
         search,
         goToPage,
         searchLocation,
+        annotations,
+        addAnnotation,
+        addSearchAnnotation,
+        removeAnnotation,
+        clearAnnotations,
+        getAnnotations,
       }}
     >
       {children}

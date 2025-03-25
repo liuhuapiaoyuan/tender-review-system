@@ -4,19 +4,20 @@ import {
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ReviewProgress, TenderReview } from "../types/review";
 import { simulateReviewProcess } from "../utils/reviewSimulator";
 import Header from "./Header";
 import ReviewCheckList from "./ReviewCheckList";
 import ReviewDetail from "./ReviewDetail";
 import { PdfViewer } from "./review/PdfViewer";
-import { PdfViewerProvider } from "./review/PdfViewerProvider";
 
 interface TenderReviewSystemProps {
   data: TenderReview;
 }
 
 const TenderReviewSystem = ({ data }: TenderReviewSystemProps) => {
+  const [searchParams] = useSearchParams();
   const [selectedPointId, setSelectedPointId] = useState<string>("");
   const [reviewData, setReviewData] = useState<TenderReview>(data);
   const [progress, setProgress] = useState<number>(0);
@@ -109,10 +110,13 @@ const TenderReviewSystem = ({ data }: TenderReviewSystemProps) => {
           minSize={30}
           maxSize={60}
         >
-          <div className="h-full bg-white shadow-sm flex">
-            <PdfViewerProvider>
-              <PdfViewer url="https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf" />
-            </PdfViewerProvider>
+          <div className="h-full relative bg-white shadow-sm flex">
+            <PdfViewer
+              url={
+                searchParams.get("file") ??
+                "https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf"
+              }
+            />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

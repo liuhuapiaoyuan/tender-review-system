@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 import * as pdfjsLib from "pdfjs-dist";
 import { PDFDocumentProxy } from "pdfjs-dist";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { PdfAnnotation } from "./PdfAnnotation";
 import { usePdfViewer } from "./PdfViewerProvider";
 
 const pdfWorkerUrl = new URL("/pdf/pdf.worker.mjs", import.meta.url).href;
@@ -41,6 +42,7 @@ async function renderContent(
 
 export const PdfViewer: React.FC<PdfViewerProps> = ({ url, className }) => {
   const { setPdf, containerRef } = usePdfViewer();
+  const innerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [startY, setStartY] = useState(0);
@@ -52,22 +54,27 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ url, className }) => {
   const animationFrameRef = useRef<number>();
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!innerRef.current) return;
 
     // 加载PDF文档并渲染所有页面
     const loadAndRenderPdf = async () => {
       try {
-        const data = await fetch(url).then((res) => res.arrayBuffer());
+        const data = await fetch(url)
+          .then((res) => res.arrayBuffer())
+          .catch(() => {
+            null;
+          });
+        if (!data) return;
         const pdf = await pdfjsLib.getDocument(data).promise;
         setPdf(pdf);
         // 清空容器
-        containerRef.current!.innerHTML = "";
+        innerRef.current!.innerHTML = "";
 
         // 创建并渲染每一页
         for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
           const canvas = document.createElement("canvas");
-          canvas.className = "pdf-page";
-          containerRef.current!.appendChild(canvas);
+          canvas.className = "pdf-page shadown w-full";
+          innerRef.current!.appendChild(canvas);
           await renderContent(canvas, pdf, pageNum);
         }
       } catch (error) {
@@ -78,8 +85,8 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ url, className }) => {
     loadAndRenderPdf();
 
     return () => {
-      if (containerRef.current) {
-        containerRef.current.innerHTML = "";
+      if (innerRef.current) {
+        innerRef.current.innerHTML = "";
       }
       // 清理动画帧
       if (animationFrameRef.current) {
@@ -145,15 +152,11 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ url, className }) => {
     const friction = 0.95;
 
     const animate = () => {
-      if (
-        Math.abs(currentVelocity.x) < 0.01 &&
-        Math.abs(currentVelocity.y) < 0.01
-      ) {
+      if (Math.abs(currentVelocity.y) < 0.1) {
         // 当速度足够小时，取消动画
         cancelAnimationFrame(animationFrameRef.current!);
         return;
       }
-
       containerRef.current!.scrollLeft -= currentVelocity.x * 16;
       containerRef.current!.scrollTop -= currentVelocity.y * 16;
       currentVelocity.x *= friction;
@@ -171,12 +174,19 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ url, className }) => {
   return (
     <div
       ref={containerRef}
-      className={cn("pdf-container flex flex-col gap-4", className)}
-      style={{ overflow: "auto", cursor: isDragging ? "grabbing" : "grab" }}
+      className={cn(
+        "pdf-container flex flex-col gap-4 bg-background/60 p-4 overflow-y-auto",
+        className
+      )}
+      style={{ cursor: isDragging ? "grabbing" : "grab" }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
-    />
+    >
+      <div ref={innerRef} className="w-full relative ">
+        <PdfAnnotation />
+      </div>
+    </div>
   );
 };
