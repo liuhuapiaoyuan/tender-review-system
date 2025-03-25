@@ -111,11 +111,11 @@
   }
   
   .risk-tag.high {
-    @apply bg-risk-light text-risk-DEFAULT;
+    @apply bg-risk-light text-risk;
   }
   
   .risk-tag.none {
-    @apply bg-safe-light text-safe-DEFAULT;
+    @apply bg-safe-light text-safe;
   }
   
   .panel-divider {
