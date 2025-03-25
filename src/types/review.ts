@@ -5,6 +5,7 @@ export interface ReviewPoint {
   hasRisk: boolean;
   parentId?: string;
   children?: ReviewPoint[];
+  status?: "pending" | "processing" | "risk" | "safe";
 }
 
 export interface ReviewDetail {
@@ -29,4 +30,10 @@ export interface TenderReview {
   reviewPoints: ReviewPoint[];
   reviewDetails: Record<string, ReviewDetail>;
   originalContent: Record<string, TenderContent>;
+}
+
+export interface ReviewProgress {
+  progress: number;
+  reviewPoints: ReviewPoint[];
+  isComplete: boolean;
 }

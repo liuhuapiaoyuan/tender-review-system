@@ -1,11 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Separator } from "@/components/ui/separator";
 import Header from "./Header";
 import ReviewCheckList from "./ReviewCheckList";
 import ReviewDetail from "./ReviewDetail";
 import OriginalContent from "./OriginalContent";
-import { TenderReview } from "../types/review";
+import { TenderReview, ReviewProgress } from "../types/review";
+import { simulateReviewProcess } from "../utils/reviewSimulator";
 
 interface TenderReviewSystemProps {
   data: TenderReview;
@@ -13,6 +14,44 @@ interface TenderReviewSystemProps {
 
 const TenderReviewSystem = ({ data }: TenderReviewSystemProps) => {
   const [selectedPointId, setSelectedPointId] = useState<string>("");
+  const [reviewData, setReviewData] = useState<TenderReview>(data);
+  const [progress, setProgress] = useState<number>(0);
+  const [isSimulationComplete, setIsSimulationComplete] = useState<boolean>(false);
+
+  useEffect(() => {
+    const runSimulation = async () => {
+      const generator = simulateReviewProcess(data);
+      
+      // Initial state
+      let result = generator.next();
+      
+      while (!result.done) {
+        const value = result.value;
+        
+        // If the value is a Promise (delay), await it
+        if (value instanceof Promise) {
+          await value;
+        } else {
+          // Update the state with the new review progress
+          const progressData = value as ReviewProgress;
+          setProgress(progressData.progress);
+          setReviewData(prev => ({
+            ...prev,
+            reviewPoints: progressData.reviewPoints
+          }));
+          
+          if (progressData.isComplete) {
+            setIsSimulationComplete(true);
+          }
+        }
+        
+        // Get the next value
+        result = generator.next();
+      }
+    };
+    
+    runSimulation();
+  }, [data]);
 
   const handleSelectPoint = (id: string) => {
     setSelectedPointId(id);
@@ -32,9 +71,10 @@ const TenderReviewSystem = ({ data }: TenderReviewSystemProps) => {
         {/* Left Column - Review Points */}
         <div className="w-1/4 bg-white border-r shadow-sm">
           <ReviewCheckList 
-            reviewPoints={data.reviewPoints}
+            reviewPoints={reviewData.reviewPoints}
             selectedId={selectedPointId}
             onSelectPoint={handleSelectPoint}
+            progress={progress}
           />
         </div>
         
@@ -42,7 +82,10 @@ const TenderReviewSystem = ({ data }: TenderReviewSystemProps) => {
         
         {/* Middle Column - Review Details */}
         <div className="w-2/5 bg-white border-r shadow-sm">
-          <ReviewDetail detail={data.reviewDetails[selectedPointId]} />
+          <ReviewDetail 
+            detail={data.reviewDetails[selectedPointId]} 
+            isLoading={!isSimulationComplete && selectedPointId !== ""}
+          />
         </div>
         
         <Separator orientation="vertical" className="mx-1" />
