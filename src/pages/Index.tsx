@@ -2,8 +2,8 @@
 import TenderReviewSystem from "@/components/TenderReviewSystem";
 import { mockTenderReview } from "@/data/mockData";
 
-const Index = () => {
+const ReviewPage = () => {
   return <TenderReviewSystem data={mockTenderReview} />;
 };
 
-export default Index;
+export default ReviewPage;
