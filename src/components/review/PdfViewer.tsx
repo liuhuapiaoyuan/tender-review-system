@@ -175,7 +175,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ url, className }) => {
     <div
       ref={containerRef}
       className={cn(
-        "pdf-container flex flex-col gap-4 bg-background/60 p-4 overflow-y-auto",
+        "pdf-container  bg-background/60 p-4 overflow-y-auto",
         className
       )}
       style={{ cursor: isDragging ? "grabbing" : "grab" }}
@@ -184,7 +184,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({ url, className }) => {
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseUp}
     >
-      <div ref={innerRef} className="w-full relative ">
+      <div ref={innerRef} className="w-full relative flex flex flex-col gap-4 ">
         <PdfAnnotation />
       </div>
     </div>
